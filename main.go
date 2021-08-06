@@ -9,21 +9,28 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 var (
 	latest_map_downloaded = ""
 	folderpath            = ""
 	maxdownloads          = 0
+	refreshtime           = 3600
 
 	downloadamount = 0
 )
 
 func main() {
 
+	fmt.Println("Q3DF-Scraper - Version 0.1")
+	fmt.Println("-------")
+	fmt.Println("https://github.com/Ch0wW/q3df-scraper")
+
 	// Get the arguments
 	flag.StringVar(&folderpath, "output-directory", ".", "Directory to save .pk3 files")
 	flag.IntVar(&maxdownloads, "max-downloads", 0, "Maximum downloads before exiting the program")
+	flag.IntVar(&refreshtime, "refresh", 3600, "Sets the required time between two checks (in seconds).")
 	flag.Parse()
 
 	// Reading file
@@ -46,7 +53,17 @@ func main() {
 		log.Println("Latest downloaded file:", latest_map_downloaded)
 	}
 
+	// Check first...
 	CheckRSSInfo()
+
+	// Then set a timer
+	doEvery(time.Duration(refreshtime) * time.Second)
+}
+
+func doEvery(d time.Duration) {
+	for range time.Tick(d) {
+		CheckRSSInfo()
+	}
 }
 
 func UpdateFile(name string) {

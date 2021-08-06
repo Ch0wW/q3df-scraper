@@ -54,5 +54,7 @@ func CheckRSSInfo() {
 			log.Println("Exceeded the maximum amount of downloads allowed! Quitting...")
 			os.Exit(0)
 		}
+	} else {
+		log.Println("No new map found.")
 	}
 }
