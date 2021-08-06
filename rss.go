@@ -1,7 +1,8 @@
 package main
 
 import (
-	"fmt"
+	"log"
+	"os"
 
 	"github.com/mmcdole/gofeed"
 )
@@ -37,11 +38,21 @@ func CheckRSSInfo() {
 				panic(err)
 			}
 
-			fmt.Println("Downloaded: " + fileUrl)
+			log.Println("Downloaded: " + fileUrl)
+
+			if maxdownloads > 0 {
+				downloadamount += 1
+			}
 		}
 
 		// Set the latest file in the download
 		latest_map_downloaded = feed.Items[0].Title
 		UpdateFile(latest_map_downloaded)
+
+		// Verify if we exceeded our max downloads...
+		if maxdownloads > 0 && downloadamount < maxdownloads {
+			log.Println("Exceeded the maximum amount of downloads allowed! Quitting...")
+			os.Exit(0)
+		}
 	}
 }

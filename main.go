@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,14 +13,23 @@ import (
 
 var (
 	latest_map_downloaded = ""
+	folderpath            = ""
+	maxdownloads          = 0
+
+	downloadamount = 0
 )
 
 func main() {
 
+	// Get the arguments
+	flag.StringVar(&folderpath, "output-directory", ".", "Directory to save .pk3 files")
+	flag.IntVar(&maxdownloads, "max-downloads", 0, "Maximum downloads before exiting the program")
+	flag.Parse()
+
 	// Reading file
 	data, err := ioutil.ReadFile("latest_map_downloaded")
 	if err != nil {
-		fmt.Println("`latest_map_downloaded` not found:", err)
+		fmt.Println(err)
 		fmt.Println("Creating file...")
 
 		_, err := os.Create("latest_map_downloaded")
@@ -29,8 +39,12 @@ func main() {
 		}
 
 	}
-	fmt.Println("Contents of file:", string(data))
+
 	latest_map_downloaded = string(data)
+
+	if latest_map_downloaded != "" {
+		log.Println("Latest downloaded file:", latest_map_downloaded)
+	}
 
 	CheckRSSInfo()
 }
@@ -71,8 +85,18 @@ func DownloadFile(filepath string, url string) error {
 	}
 	defer resp.Body.Close()
 
+	fullpath := fmt.Sprintf("%s/%s", folderpath, filepath)
+
+	// Make sure we have a valid path
+	if _, err := os.Stat(folderpath); os.IsNotExist(err) {
+		err := os.Mkdir(folderpath, 0755)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	// Create the file
-	out, err := os.Create(filepath)
+	out, err := os.Create(fullpath)
 	if err != nil {
 		return err
 	}
